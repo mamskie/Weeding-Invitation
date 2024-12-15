@@ -1,0 +1,60 @@
+name: Code Analysis and Deploy
+
+on:
+  push:
+    branches:
+      - '3.x'
+
+jobs:
+  analyze-code:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run ESLint (JavaScript)
+      run: npx eslint "js/**/*.js"
+
+    - name: Run stylelint (CSS)
+      run: npx stylelint "css/**/*.css"
+
+    - name: Run HTMLHint (HTML)
+      run: npx htmlhint "**/*.html"
+
+  deploy:
+    needs: analyze-code
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Check if NETLIFY_AUTH_TOKEN is set
+      run: |
+        if [ -z "${{ secrets.NETLIFY_AUTH_TOKEN }}" ]; then
+          echo "NETLIFY_AUTH_TOKEN is not set. Skipping deployment."
+          exit 0
+        fi
+
+    - name: Install Netlify CLI
+      run: npm install netlify-cli --production
+
+    - name: Deploy to Netlify
+      env:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      run: sudo netlify deploy --prod --dir=. --auth=$NETLIFY_AUTH_TOKEN --site=$NETLIFY_SITE_ID
