@@ -249,7 +249,7 @@ export const admin = (() => {
             storage('information').clear();
         }
 
-        theme.spyTop();
+        // theme.spyTop();
         comment.init();
 
         if (!session.isAdmin() || !session.getToken() || (JSON.parse(atob((session.getToken()).split('.')[1])).exp ?? 0) < (Date.now() / 1000)) {
